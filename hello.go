@@ -3,5 +3,5 @@ package arrowheadfunctions
 import "fmt"
 
 func Hello() {
-	fmt.Println("Hello")
+	fmt.Println("You knmow what it is")
 }
