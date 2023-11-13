@@ -47,7 +47,7 @@ func PublishService(requestBody Service, address string, port int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, err := http.NewRequest("POST", address+":"+portSTR, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR, bytes.NewBuffer(payload))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func GetServiceBody(interfaces []string, address string, port int, systemName st
 func RemoveService(service Service, address string, port int) {
 	portSTR := strconv.Itoa(port)
 	fmt.Println("Cleaning up before exit")
-	url := fmt.Sprintf(address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
+	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		log.Fatal(err)
