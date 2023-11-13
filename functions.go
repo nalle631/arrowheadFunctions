@@ -47,7 +47,8 @@ func PublishService(requestBody Service, address string, port int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR+"/serviceregistry/register", bytes.NewBuffer(payload))
+
 	if err != nil {
 		log.Fatal(err)
 	}
