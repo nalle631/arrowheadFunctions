@@ -78,7 +78,7 @@ func GetClient(certFile string, keyFile string) *http.Client {
 	return client
 }
 
-func PublishService(requestBody Service, address string, port int) {
+func PublishService(requestBody Service, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	payload, err := json.Marshal(requestBody)
 	if err != nil {
@@ -91,7 +91,7 @@ func PublishService(requestBody Service, address string, port int) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := GetClient("./usercert.pem", "./userkey.pem")
+	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
 	fmt.Println("request sent")
 	fmt.Println("requestbody: ", requestBody)
@@ -126,7 +126,7 @@ func GetServiceBody(interfaces []string, address string, port int, systemName st
 	return *requestBody
 }
 
-func RemoveService(service Service, address string, port int) {
+func RemoveService(service Service, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	fmt.Println("Cleaning up before exit")
 	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
@@ -135,7 +135,7 @@ func RemoveService(service Service, address string, port int) {
 		log.Fatal(err)
 	}
 
-	client := GetClient("./usercert.pem", "./userkey.pem")
+	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
 	fmt.Println("request sent")
 	if err != nil {
@@ -147,7 +147,7 @@ func RemoveService(service Service, address string, port int) {
 
 }
 
-func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int) {
+func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	payload, err := json.Marshal(rsrDTO)
 	if err != nil {
@@ -158,7 +158,7 @@ func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int) {
 		log.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := GetClient("./usercert.pem", "./userkey.pem")
+	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panic("Error making HTTP request using client. ", err)
@@ -167,7 +167,7 @@ func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int) {
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
-func Orchestration(requestBody Orchestrate, address string, port int) []byte {
+func Orchestration(requestBody Orchestrate, address string, port int, certFilePath string, keyFilePath string) []byte {
 	portSTR := strconv.Itoa(port)
 	payload, err := json.Marshal(requestBody)
 	if err != nil {
@@ -179,7 +179,7 @@ func Orchestration(requestBody Orchestrate, address string, port int) []byte {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := GetClient("./usercert.pem", "./userkey.pem")
+	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
 	fmt.Println("request sent")
 	fmt.Println("requestbody: ", requestBody)
@@ -196,14 +196,15 @@ func Orchestration(requestBody Orchestrate, address string, port int) []byte {
 	return body
 }
 
-func RemoveSystem(system RegisterSystemRequestDTO) {
-	url := fmt.Sprintf("https://localhost:8443/serviceregistry/unregister-system?address=%s&port=%s&system_name=%s", system.Address, strconv.Itoa(system.Port), system.SystemName)
+func RemoveSystem(system RegisterSystemRequestDTO, address string, port int, certFilePath string, keyFilePath string) {
+	portSTR := strconv.Itoa(port)
+	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister-system?address=%s&port=%s&system_name=%s", system.Address, strconv.Itoa(system.Port), system.SystemName)
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client := GetClient("./usercert.pem", "./userkey.pem")
+	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
 	fmt.Println("request sent")
 	if err != nil {
