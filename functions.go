@@ -5,22 +5,59 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-type ProviderSystem struct {
+type System struct {
+	Address    string `json:"address"`
+	Port       int    `json:"port"`
+	SystemName string `json:"systemName"`
+}
+
+type RegisterSystemRequestDTO struct {
 	Address    string `json:"address"`
 	Port       int    `json:"port"`
 	SystemName string `json:"systemName"`
 }
 
 type Service struct {
-	Interfaces        []string       `json:"interfaces"`
-	ProviderSystem    ProviderSystem `json:"providerSystem"`
-	ServiceDefinition string         `json:"serviceDefinition"`
-	ServiceUri        string         `json:"serviceUri"`
+	Interfaces        []string `json:"interfaces"`
+	ProviderSystem    System   `json:"providerSystem"`
+	ServiceDefinition string   `json:"serviceDefinition"`
+	ServiceUri        string   `json:"serviceUri"`
+}
+
+type Orchestrate struct {
+	OrchestrationFlags OrchestrationFlag `json:"orchestrationFlags"`
+	RequestedService   RequestedService  `json:"requestedService"`
+	RequesterSystem    System            `json:"requesterSystem"`
+}
+
+type OrchestrateResponse struct {
+	Provider   Provider `json:"provider"`
+	ServiceUri string   `json:"serviceUri"`
+}
+
+type OrchResponse struct {
+	Response []OrchestrateResponse `json:"response"`
+}
+
+type OrchestrationFlag struct {
+	OverrideStore bool `json:"overrideStore"`
+}
+
+type RequestedService struct {
+	InterfaceRequirements        []string `json:"interfaceRequirements"`
+	ServiceDefinitionRequirement string   `json:"serviceDefinitionRequirement"`
+}
+
+type Provider struct {
+	Address    string `json:"address"`
+	Port       int    `json:"port"`
+	SystemName string `json:"systemName"`
 }
 
 func Hello() {
@@ -108,4 +145,71 @@ func RemoveService(service Service, address string, port int) {
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 	fmt.Println("Service deleted")
 
+}
+
+func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int) {
+	portSTR := strconv.Itoa(port)
+	payload, err := json.Marshal(rsrDTO)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR+"/serviceregistry/register-system", bytes.NewBuffer(payload))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := GetClient("./usercert.pem", "./userkey.pem")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panic("Error making HTTP request using client. ", err)
+	}
+	fmt.Println("## Response Body:\n", resp.Body)
+	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
+}
+
+func Orchestration(requestBody Orchestrate, address string, port int) []byte {
+	portSTR := strconv.Itoa(port)
+	payload, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR+"/orchestrator/orchestration", bytes.NewBuffer(payload))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := GetClient("./usercert.pem", "./userkey.pem")
+	resp, err := client.Do(req)
+	fmt.Println("request sent")
+	fmt.Println("requestbody: ", requestBody)
+	if err != nil {
+		log.Panic("Error making HTTP request using client. ", err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	fmt.Println("body in orchestration: ", body)
+	body2 := string(body[:])
+
+	fmt.Println("## Response Body:\n", body2)
+	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
+	return body
+}
+
+func RemoveSystem(system RegisterSystemRequestDTO) {
+	url := fmt.Sprintf("https://localhost:8443/serviceregistry/unregister-system?address=%s&port=%s&system_name=%s", system.Address, strconv.Itoa(system.Port), system.SystemName)
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := GetClient("./usercert.pem", "./userkey.pem")
+	resp, err := client.Do(req)
+	fmt.Println("request sent")
+	if err != nil {
+		log.Panic("Error making HTTP request using client. ", err)
+	}
+
+	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
+	fmt.Println("System deleted")
 }
