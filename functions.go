@@ -102,30 +102,6 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
-func GetHTTPRequest(method string, url string, body Service, contentType string) *http.Request {
-	payload, err := json.Marshal(body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(payload))
-	if err != nil {
-		log.Fatal(err)
-	}
-	req.Header.Set("Content-Type", contentType)
-	return req
-}
-
-func GetServiceBody(interfaces []string, address string, port int, systemName string, serviceDefinition string, serviceUri string) Service {
-	requestBody := new(Service)
-	requestBody.Interfaces = interfaces
-	requestBody.ProviderSystem.Address = address
-	requestBody.ProviderSystem.Port = port
-	requestBody.ProviderSystem.SystemName = systemName
-	requestBody.ServiceDefinition = serviceDefinition
-	requestBody.ServiceUri = serviceUri
-	return *requestBody
-}
-
 func RemoveService(service Service, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	fmt.Println("Cleaning up before exit")
@@ -188,7 +164,6 @@ func Orchestration(requestBody Orchestrate, address string, port int, certFilePa
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println("body in orchestration: ", body)
 	body2 := string(body[:])
 
 	fmt.Println("## Response Body:\n", body2)
