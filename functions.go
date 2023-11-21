@@ -114,7 +114,6 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 
 	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
-	fmt.Println("requestbody: ", requestBody)
 	if err != nil {
 		log.Panic("Error making HTTP request using client. ", err)
 	}
@@ -122,9 +121,8 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 	if err != nil {
 		log.Panic("Error reading HTTP response. ", err)
 	}
-	var unmarshaledBody string
-	json.Unmarshal(body, unmarshaledBody)
-	fmt.Println("## Response Body:\n", unmarshaledBody)
+
+	fmt.Println("## Response Body:\n", string(body))
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
