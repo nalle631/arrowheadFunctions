@@ -12,9 +12,10 @@ import (
 )
 
 type System struct {
-	Address    string `json:"address"`
-	Port       int    `json:"port"`
-	SystemName string `json:"systemName"`
+	Address            string `json:"address"`
+	Port               int    `json:"port"`
+	SystemName         string `json:"systemName"`
+	AuthenticationInfo string `json:"authenticationInfo"`
 }
 
 type RegisterSystemRequestDTO struct {
