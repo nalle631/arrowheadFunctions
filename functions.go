@@ -26,6 +26,7 @@ type RegisterSystemRequestDTO struct {
 type Service struct {
 	Interfaces        []string `json:"interfaces"`
 	ProviderSystem    System   `json:"providerSystem"`
+	Secure            string   `json:"secure"`
 	ServiceDefinition string   `json:"serviceDefinition"`
 	ServiceUri        string   `json:"serviceUri"`
 }
@@ -64,6 +65,26 @@ func Hello() {
 	fmt.Println("Daniel-sama")
 }
 
+func EchoServiceRegistry(address string, port int, certFilePath string, keyFilePath string) ([]byte, error) {
+	portSTR := strconv.Itoa(port)
+	req, errCreateRequest := http.NewRequest("GET", "https://"+address+":"+portSTR+"/serviceregistry/echo", nil)
+	if errCreateRequest != nil {
+		return nil, errCreateRequest
+	}
+	client := GetClient(certFilePath, keyFilePath)
+	resp, errDoRequest := client.Do(req)
+	if errDoRequest != nil {
+		return nil, errDoRequest
+	}
+
+	body, errReadingBody := io.ReadAll(resp.Body)
+	if errReadingBody != nil {
+		return nil, errReadingBody
+	}
+	return body, nil
+
+}
+
 func GetClient(certFile string, keyFile string) *http.Client {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
@@ -93,12 +114,17 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 
 	client := GetClient(certFilePath, keyFilePath)
 	resp, err := client.Do(req)
-	fmt.Println("request sent")
 	fmt.Println("requestbody: ", requestBody)
 	if err != nil {
 		log.Panic("Error making HTTP request using client. ", err)
 	}
-	fmt.Println("## Response Body:\n", resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Panic("Error reading HTTP response. ", err)
+	}
+	var unmarshaledBody string
+	json.Unmarshal(body, unmarshaledBody)
+	fmt.Println("## Response Body:\n", unmarshaledBody)
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
