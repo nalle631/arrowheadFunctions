@@ -18,6 +18,10 @@ type System struct {
 	AuthenticationInfo string `json:"authenticationInfo"`
 }
 
+type Metadata struct {
+	Method string `json:"method"`
+}
+
 type RegisterSystemRequestDTO struct {
 	Address    string `json:"address"`
 	Port       int    `json:"port"`
@@ -26,6 +30,7 @@ type RegisterSystemRequestDTO struct {
 
 type Service struct {
 	Interfaces        []string `json:"interfaces"`
+	Metadata          Metadata `json:"metadata"`
 	ProviderSystem    System   `json:"providerSystem"`
 	Secure            string   `json:"secure"`
 	ServiceDefinition string   `json:"serviceDefinition"`
