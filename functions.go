@@ -93,11 +93,10 @@ func EchoServiceRegistry(address string, port int, certFilePath string, keyFileP
 
 func RemoveServices(servicesToBeRemoved []Service, address string, port int, certFilePath string, keyFilePath string) {
 	for _, service := range servicesToBeRemoved {
-		body, err := RemoveService(service, address, port, certFilePath, keyFilePath)
+		_, err := RemoveService(service, address, port, certFilePath, keyFilePath)
 		if err != nil {
 			fmt.Println("Error removing service: ", err)
 		}
-		fmt.Println(string(body))
 	}
 }
 
@@ -217,7 +216,7 @@ func Orchestration(requestBody Orchestrate, address string, port int, certFilePa
 	return body
 }
 
-func RemoveSystem(system RegisterSystemRequestDTO, address string, port int, certFilePath string, keyFilePath string) {
+func RemoveSystem(system System, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister-system?address=%s&port=%s&system_name=%s", system.Address, strconv.Itoa(system.Port), system.SystemName)
 	req, err := http.NewRequest("DELETE", url, nil)
