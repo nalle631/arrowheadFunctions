@@ -93,7 +93,11 @@ func EchoServiceRegistry(address string, port int, certFilePath string, keyFileP
 
 func RemoveServices(servicesToBeRemoved []Service, address string, port int, certFilePath string, keyFilePath string) {
 	for _, service := range servicesToBeRemoved {
-		RemoveService(service, address, port, certFilePath, keyFilePath)
+		body, err := RemoveService(service, address, port, certFilePath, keyFilePath)
+		if err != nil {
+			fmt.Println("Error removing service: ", err)
+		}
+		fmt.Println(string(body))
 	}
 }
 
@@ -144,24 +148,24 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
-func RemoveService(service Service, address string, port int, certFilePath string, keyFilePath string) {
+func RemoveService(service Service, address string, port int, certFilePath string, keyFilePath string) ([]byte, error) {
 	portSTR := strconv.Itoa(port)
-	fmt.Println("Cleaning up before exit")
 	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		log.Fatal(err)
+	req, errCreateRequest := http.NewRequest("DELETE", url, nil)
+	if errCreateRequest != nil {
+		return nil, errCreateRequest
 	}
 
 	client := GetClient(certFilePath, keyFilePath)
-	resp, err := client.Do(req)
-	fmt.Println("request sent")
-	if err != nil {
-		log.Panic("Error making HTTP request using client. ", err)
+	resp, errDoRequest := client.Do(req)
+	if errDoRequest != nil {
+		return nil, errCreateRequest
 	}
-
-	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
-	fmt.Println("Service deleted")
+	body, errReadingBody := io.ReadAll(resp.Body)
+	if errReadingBody != nil {
+		return nil, errReadingBody
+	}
+	return body, nil
 
 }
 
