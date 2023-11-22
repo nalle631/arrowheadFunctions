@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -143,9 +144,11 @@ func PublishService(requestBody Service, address string, port int, certFilePath 
 
 func RemoveService(service Service, address string, port int, certFilePath string, keyFilePath string) ([]byte, error) {
 	portSTR := strconv.Itoa(port)
-	url := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
-	fmt.Println("URL: ", url)
-	req, errCreateRequest := http.NewRequest("DELETE", url, nil)
+	urlFull := fmt.Sprintf("https://"+address+":"+portSTR+"/serviceregistry/unregister?address=%s&port=%s&service_definition=%s&service_uri=%s&system_name=%s", service.ProviderSystem.Address, strconv.Itoa(service.ProviderSystem.Port), service.ServiceDefinition, service.ServiceUri, service.ProviderSystem.SystemName)
+	fmt.Println("URL: ", urlFull)
+	newUrl := url.QueryEscape(urlFull)
+	println("newUrl: ", newUrl)
+	req, errCreateRequest := http.NewRequest("DELETE", newUrl, nil)
 	if errCreateRequest != nil {
 		return nil, errCreateRequest
 	}
