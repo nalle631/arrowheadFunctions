@@ -22,12 +22,6 @@ type Metadata struct {
 	Method string `json:"method"`
 }
 
-type RegisterSystemRequestDTO struct {
-	Address    string `json:"address"`
-	Port       int    `json:"port"`
-	SystemName string `json:"systemName"`
-}
-
 type Service struct {
 	Interfaces        []string `json:"interfaces"`
 	Metadata          Metadata `json:"metadata"`
@@ -168,7 +162,7 @@ func RemoveService(service Service, address string, port int, certFilePath strin
 
 }
 
-func RegisterSystem(rsrDTO RegisterSystemRequestDTO, address string, port int, certFilePath string, keyFilePath string) {
+func RegisterSystem(rsrDTO System, address string, port int, certFilePath string, keyFilePath string) {
 	portSTR := strconv.Itoa(port)
 	payload, err := json.Marshal(rsrDTO)
 	if err != nil {
