@@ -91,6 +91,12 @@ func EchoServiceRegistry(address string, port int, certFilePath string, keyFileP
 
 }
 
+func RemoveServices(servicesToBeRemoved []Service, address string, port int, certFilePath string, keyFilePath string) {
+	for _, service := range servicesToBeRemoved {
+		RemoveService(service, address, port, certFilePath, keyFilePath)
+	}
+}
+
 func GetClient(certFile string, keyFile string) *http.Client {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
