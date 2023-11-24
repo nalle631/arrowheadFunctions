@@ -41,6 +41,7 @@ type Orchestrate struct {
 type OrchestrateResponse struct {
 	Provider   Provider `json:"provider"`
 	ServiceUri string   `json:"serviceUri"`
+	Metadata   Metadata `json:"metadata"`
 }
 
 type OrchResponse struct {
