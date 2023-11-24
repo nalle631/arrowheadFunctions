@@ -3,13 +3,16 @@ package arrowheadfunctions
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"time"
 )
 
 type System struct {
@@ -102,17 +105,33 @@ func PublishServices(servicesToBeAdded []Service, address string, port int, cert
 	}
 }
 
-func GetClient(certFile string, keyFile string, truststor string) *http.Client {
+func GetClient(certFile string, keyFile string, truststore string) *http.Client {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		log.Panic("Certficate load error. ", err)
 	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			Certificates: []tls.Certificate{cert},
+
+	// Load truststore.p12
+	truststoreData, err := os.ReadFile(truststore)
+	if err != nil {
+		log.Panic("truststore load error. ", err)
+
+	}
+	pool := x509.NewCertPool()
+	if ok := pool.AppendCertsFromPEM(truststoreData); !ok {
+		log.Panic("extract load error. ", err)
+	}
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates:       []tls.Certificate{cert},
+				RootCAs:            pool,
+				InsecureSkipVerify: false,
+			},
 		},
 	}
-	client := &http.Client{Transport: tr}
+
 	return client
 }
 
