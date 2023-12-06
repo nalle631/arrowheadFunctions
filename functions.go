@@ -52,7 +52,8 @@ type OrchResponse struct {
 }
 
 type OrchestrationFlag struct {
-	OverrideStore bool `json:"overrideStore"`
+	OverrideStore    bool `json:"overrideStore"`
+	EnableInterCloud bool `json:"enableInterCloud"`
 }
 
 type RequestedService struct {
@@ -205,8 +206,9 @@ func RegisterSystem(rsrDTO System, address string, port int, certFilePath string
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
-func Orchestration(requestBody Orchestrate, address string, port int, certFilePath string, keyFilePath string, truststorePath string) []byte {
+func Orchestration(requestBody Orchestrate, address string, port int, certFilePath string, keyFilePath string, truststorePath string, enableInterCloud bool) []byte {
 	portSTR := strconv.Itoa(port)
+	requestBody.OrchestrationFlags.EnableInterCloud = enableInterCloud
 	payload, err := json.Marshal(requestBody)
 	if err != nil {
 		log.Fatal(err)
