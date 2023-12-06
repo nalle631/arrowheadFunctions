@@ -34,6 +34,21 @@ type Service struct {
 	ServiceDefinition string   `json:"serviceDefinition"`
 	ServiceUri        string   `json:"serviceUri"`
 }
+type InterOrchestrate struct {
+	OrchestrationFlags OrchestrationFlag `json:"orchestrationFlags"`
+	RequestedService   RequestedService  `json:"requestedService"`
+	RequsterCloud      Cloud             `json:"requesterCloud"`
+	RequesterSystem    System            `json:"requesterSystem"`
+}
+
+type Cloud struct {
+	AuthenticationInfo string `json:"authenticationInfo"`
+	GatekeeperRelayIDs []int  `json:"gatekeeperRelayIds"`
+	GatewayRelayIDs    []int  `json:"gatewayRelayIds"`
+	Name               string `json:"name"`
+	Neighbour          bool   `json:"neighbor"`
+	Operator           string `json:"operator"`
+}
 
 type Orchestrate struct {
 	OrchestrationFlags OrchestrationFlag `json:"orchestrationFlags"`
@@ -206,9 +221,36 @@ func RegisterSystem(rsrDTO System, address string, port int, certFilePath string
 	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
 }
 
-func Orchestration(requestBody Orchestrate, address string, port int, certFilePath string, keyFilePath string, truststorePath string, enableInterCloud bool) []byte {
+func InterOrchestration(requestBody InterOrchestrate, address string, port int, certFilePath string, keyFilePath string, truststorePath string) []byte {
 	portSTR := strconv.Itoa(port)
-	requestBody.OrchestrationFlags.EnableInterCloud = enableInterCloud
+	payload, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req, err := http.NewRequest("POST", "https://"+address+":"+portSTR+"/orchestrator/orchestration", bytes.NewBuffer(payload))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := GetClient(certFilePath, keyFilePath, truststorePath)
+	resp, err := client.Do(req)
+	fmt.Println("request sent")
+	fmt.Println("requestbody: ", requestBody)
+	if err != nil {
+		log.Panic("Error making HTTP request using client. ", err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	body2 := string(body[:])
+
+	fmt.Println("## Response Body:\n", body2)
+	fmt.Println("## Response status:\n", resp.Status, resp.StatusCode)
+	return body
+}
+
+func Orchestration(requestBody Orchestrate, address string, port int, certFilePath string, keyFilePath string, truststorePath string) []byte {
+	portSTR := strconv.Itoa(port)
 	payload, err := json.Marshal(requestBody)
 	if err != nil {
 		log.Fatal(err)
